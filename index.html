@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Video Downloader</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: #0a0a0a; /* Dark background for contrast */
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Raindrop animation */
+        .raindrop {
+            position: absolute;
+            top: -50px;
+            width: 2px;
+            height: 50px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        /* Emoji animation */
+        .emoji {
+            position: absolute;
+            font-size: 40px; /* Size of the emoji */
+            animation: float 10s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+            50% {
+                transform: translateY(0) rotate(-10deg);
+            }
+            75% {
+                transform: translateY(20px) rotate(10deg);
+            }
+        }
+
+        /* Container for the content */
+        .container {
+            background: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            backdrop-filter: blur(10px); /* Blur effect for glassmorphism */
+            z-index: 1;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+            color: white;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            box-sizing: border-box;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            color: white;
+        }
+
+        #result a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        #result a:hover {
+            text-decoration: underline;
+        }
+
+        /* Timer */
+        #timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+        /* Jumpscare video */
+        #jumpscareVideo {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Raindrops will be dynamically generated here -->
+    <!-- Emoji elements -->
+    <div class="emoji" style="top: 10%; left: 5%;">💖</div>
+    <div class="emoji" style="top: 20%; left: 80%;">🔥</div>
+    <div class="emoji" style="top: 30%; left: 40%;">❣️</div>
+    <div class="emoji" style="top: 50%; left: 10%;">🕊️</div>
+    <div class="emoji" style="top: 60%; left: 70%;">🥰</div>
+    <div class="emoji" style="top: 70%; left: 30%;">😍</div>
+    <div class="emoji" style="top: 80%; left: 60%;">🤩</div>
+    <div class="emoji" style="top: 90%; left: 20%;">🥳</div>
+    <div class="emoji" style="top: 40%; left: 90%;">☺️</div>
+
+    <!-- Timer -->
+    <div id="timer">60</div>
+
+    <!-- Jumpscare video -->
+    <video id="jumpscareVideo" controls autoplay muted>
+        <source src="https://www.example.com/jumpscare.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Audio element for the "One Eternity Later" sound -->
+    <audio id="eternitySound" src="https://www.myinstants.com/media/sounds/one-eternity-later.mp3"></audio>
+
+    <div class="container">
+        <h1>Instagram Video Downloader</h1>
+        <input type="text" id="videoUrl" placeholder="Paste Instagram Video URL">
+        <button onclick="downloadVideo()">Download</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Function to create raindrops
+        function createRain() {
+            const rainContainer = document.body;
+
+            for (let i = 0; i < 200; i++) {
+                const raindrop = document.createElement('div');
+                raindrop.className = 'raindrop';
+                raindrop.style.left = `${Math.random() * 100}vw`;
+                raindrop.style.animationDuration = `${Math.random() * 0.5 + 0.5}s`;
+                raindrop.style.animationDelay = `${Math.random() * 2}s`;
+                rainContainer.appendChild(raindrop);
+            }
+        }
+
+        // Create raindrops on page load
+        createRain();
+
+        // Function to handle video download
+        async function downloadVideo() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            const resultDiv = document.getElementById('result');
+            const eternitySound = document.getElementById('eternitySound');
+
+            if (!videoUrl) {
+                alert('Please enter a valid Instagram video URL.');
+                return;
+            }
+
+            // Play the "One Eternity Later" sound
+            eternitySound.play();
+
+            resultDiv.innerHTML = 'Fetching download link...';
+
+            try {
+                // Simulate a delay for the "One Eternity Later" effect
+                await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds delay
+
+                // Use a free third-party API to fetch the download link
+                const apiUrl = `https://api.instagramdownloader.net/api/ig/video?url=${encodeURIComponent(videoUrl)}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.success) {
+                    const downloadLink = data.data.url;
+                    resultDiv.innerHTML = `<a href="${downloadLink}" target="_blank">Download Video</a>`;
+                } else {
+                    resultDiv.innerHTML = 'Failed to fetch video. Please check the URL.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = 'An error occurred. Please try again.';
+            }
+        }
+
+        // Timer and jumpscare logic
+        const timerElement = document.getElementById('timer');
+        const jumpscareVideo = document.getElementById('jumpscareVideo');
+        let timeLeft = 60;
+
+        function startTimer() {
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    playJumpscare();
+                }
+            }, 1000);
+        }
+
+        function playJumpscare() {
+            jumpscareVideo.style.display = 'block';
+            jumpscareVideo.play();
+        }
+
+        // Start the timer on page load
+        startTimer();
+    </script>
+</body>
+</html>
